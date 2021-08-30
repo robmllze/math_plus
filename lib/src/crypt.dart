@@ -1,10 +1,11 @@
 // ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
 //
-// MISC
+// CRYPT
 //
-// By Robert Mollentze / @robmllze (2021)
+// TODO: Finish comments.
 //
-// Please see LICENSE file.
+// <#Author=>
+// <#Date   =>
 //
 // ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
 
@@ -17,14 +18,16 @@ import 'int_convert.dart';
 import 'mapping.dart' show mapShuffle, unmapShuffle;
 
 // ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+//
+// CRYPT METHOD
+//
+// ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
+/// Used to identify the cryptic type used.
 enum CryptMethod { BASIC, PSEUDO, NONE }
 
-//
-//
-//
-
-extension CryptMethodCode on CryptMethod {
+extension CryptMethod_Code on CryptMethod {
+  /// Returns the integer representation of the [CryptMethod] value.
   int get code {
     switch (this) {
       case CryptMethod.BASIC:
@@ -37,11 +40,28 @@ extension CryptMethodCode on CryptMethod {
   }
 }
 
-//
-//
-//
+extension CryptMethod_toShortString on CryptMethod {
+  /// Returns the name of the [CryptMethod] value.
+  String get name {
+    final s = this.toString();
+    return s.substring(s.indexOf('.') + 1);
+  }
+}
 
-CryptMethod codeToEncryptionMethod(final int code) {
+/// Returns the [CryptMethod] value from a valid `name`.
+CryptMethod nameToCryptMethod(final String name) {
+  switch (name.toLowerCase()) {
+    case "basic":
+      return CryptMethod.BASIC;
+    case "bogus":
+      return CryptMethod.PSEUDO;
+    default:
+      return CryptMethod.NONE;
+  }
+}
+
+/// Returns the [CryptMethod] value from a valid `code`.
+CryptMethod codeToCryptMethod(final int code) {
   switch (code) {
     case 0:
       return CryptMethod.BASIC;
@@ -53,57 +73,54 @@ CryptMethod codeToEncryptionMethod(final int code) {
 }
 
 // ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+//
+// OK
+//
+// ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
 // Used to verify decryption success.
 const String _OK = "0|<@Y";
 
 // ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
+//
+// CRYPT
+//
+// ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
 extension Crypt on String {
-  //
-  //
-  //
-
+  /// Encrypts `this` using the "basic" `password` protection algorithm.
   String encryptedBasic(final String password) {
-    final List<int> _password = password.codeUnits;
-    final List<int> _encrypted = [];
-    int _temp;
-    int _i = 0;
+    final _password = password.codeUnits;
+    final _encrypted = <int>[];
+    int p, m = 0;
+    // Encode _OK in order to verify success when decrypting.
     for (final int c in "$_OK$this".codeUnits) {
-      _temp = c + _i + _password[_i++];
-      if (_i == _password.length) {
-        _i = 0;
-      }
-      while (_temp > 255) {
-        _temp -= 255;
-      }
-      _encrypted.add(_temp);
+      p = c + m + _password[m++];
+      if (m == _password.length) m = 0;
+      while (p > 255) p -= 255;
+      _encrypted.add(p);
     }
+    // Encode the method.
     return CryptMethod.BASIC.code.toBytesFromUint32 +
         String.fromCharCodes(_encrypted);
   }
 
-  //
-  //
-  //
-
+  /// Decrypts `this` using the "basic" `password` protection algorithm. If
+  /// decryption failed, `null` is returned instead.
   String? decryptedBasic(final String password) {
+    // Verify that String is encrypted with the "basic" algorithm.
     if (this.length >= 4 && this.toUint32FromBytes == CryptMethod.BASIC.code) {
-      final List<int> _password = password.codeUnits;
-      final List<int> _codes = [];
-      int _temp;
-      int _i = 0;
+      final _password = password.codeUnits;
+      final _codes = <int>[];
+      int p, m = 0;
       for (final int c in this.substring(4).codeUnits) {
-        _temp = c - _i - _password[_i++];
-        if (_i == _password.length) {
-          _i = 0;
-        }
-        while (_temp < 0) {
-          _temp += 255;
-        }
-        _codes.add(_temp);
+        p = c - m - _password[m++];
+        if (m == _password.length) m = 0;
+        while (p < 0) p += 255;
+        _codes.add(p);
       }
-      final String _decrypted = String.fromCharCodes(_codes);
+      final _decrypted = String.fromCharCodes(_codes);
+      // Verify that _decrypted starts with _OK.
       if (_decrypted.startsWith(_OK)) {
         return _decrypted.substring(_OK.length);
       }
@@ -111,50 +128,58 @@ extension Crypt on String {
     return null;
   }
 
-  //
-  //
-  //
-
-  /// Adds arbitrary pseudo data to message before encrypting.
-  String encryptedPseudo(
+  /// Encrypts `this` using the "bogus" `password` protection algorithm.
+  ///
+  /// **How it Works:**
+  ///
+  /// First, "bogus" data of length between `bogusLenMin` and
+  /// `bogusLenMax` is prepended to the real data, then it is encrypted by
+  /// the "basic" algorithm.
+  ///
+  /// See [encryptedBasic].
+  String encryptedBogus(
     final String password, [
-    final int pseudoLengthMin = 4,
-    final int pseudoLengthMax = 12,
+    final int bogusLenMin = 4,
+    final int bogusLenMax = 12,
   ]) {
-    assert(pseudoLengthMin >= 0);
-    assert(pseudoLengthMax >= 0);
-    final Random _random = Random();
-    final int _pseudoLength = pseudoLengthMin +
-        (pseudoLengthMax != 0 ? _random.nextInt(pseudoLengthMax) : 0);
-    final String _pseudoLengthAsBytes = _pseudoLength.toBytesFromUint32;
-    final List<int> _charCodesPseudo =
-        List<int>.generate(_pseudoLength, (_) => _random.nextInt(256));
-    final String _pseudo = String.fromCharCodes(_charCodesPseudo);
+    assert(bogusLenMin >= 0);
+    assert(bogusLenMax >= 0);
+    final _random = Random();
+    final _bogusLen =
+        bogusLenMin + (bogusLenMax != 0 ? _random.nextInt(bogusLenMax) : 0);
+    final _bogusLenAsBytes = _bogusLen.toBytesFromUint32;
+    // Generate bogus data.
+    final _charCodesBogus =
+        List<int>.generate(_bogusLen, (_) => _random.nextInt(256));
+    final _bogus = String.fromCharCodes(_charCodesBogus);
     // If message starts with \0\0\0\0, the first 4 characters of the password
     // will be visible. Adding #### before the password hides it.
     return CryptMethod.PSEUDO.code.toBytesFromUint32 +
-        ("$_pseudoLengthAsBytes"
-                "$_pseudo"
+        ("$_bogusLenAsBytes"
+                "$_bogus"
                 "$_OK"
                 "$this")
             .encryptedBasic("####$password");
   }
 
-  //
-  //
-  //
-
-  String? decryptedPseudo(
+  /// Decrypts `this` using the "bogus" `password` protection algorithm.
+  ///
+  /// Note: `bogusLenMax` must be sufficiently large, otherwise decryption will
+  /// fail. If decryption failed, `null` is returned instead.
+  ///
+  /// See descriptions of [encryptedBogus] and [decryptedBasic] for more
+  /// information.
+  String? decryptedBogus(
     final String password, [
-    final int pseudoLengthMax = 1024,
+    final int bogusLenMax = 1024,
   ]) {
-    assert(pseudoLengthMax >= 0);
+    assert(bogusLenMax >= 0);
     if (this.length >= 4 && this.toUint32FromBytes == CryptMethod.PSEUDO.code) {
       final String? _basic = this.substring(4).decryptedBasic("####$password");
       if (_basic != null) {
-        final int _pseudoLength = _basic.toUint32FromBytes ?? 0;
-        if (_pseudoLength > pseudoLengthMax) return "";
-        final int _start = 4 + _pseudoLength;
+        final _bogusLen = _basic.toUint32FromBytes ?? 0;
+        if (_bogusLen > bogusLenMax) return "";
+        final _start = 4 + _bogusLen;
         final String? _res =
             _basic.length >= _start ? _basic.substring(_start) : null;
         if (_res != null && _res.startsWith(_OK)) {
@@ -165,20 +190,18 @@ extension Crypt on String {
     return null;
   }
 
-  //
-  //
-  //
-
+  /// Decrypts `this` no matter which encryption methof is used. If decryption
+  /// failed, `null` is returned instead.
   String? decrypted(final String password) {
     if (this.length >= 4) {
       final int? _code = this.toUint32FromBytes;
       if (_code != null) {
-        final CryptMethod? _method = codeToEncryptionMethod(_code);
+        final CryptMethod? _method = codeToCryptMethod(_code);
         switch (_method) {
           case CryptMethod.BASIC:
             return this.decryptedBasic(password);
           case CryptMethod.PSEUDO:
-            return this.decryptedPseudo(password);
+            return this.decryptedBogus(password);
           default:
             return null;
         }
@@ -192,14 +215,14 @@ extension Crypt on String {
   //
 
   String shuffled([final int shuffle = 3]) {
-    final int _length = this.length;
-    final List<int> _charCodes = this.codeUnits;
-    final List<int> _shuffledPositions = [];
+    final _length = this.length;
+    final _charCodes = this.codeUnits;
+    final _shuffledPositions = <int>[];
     for (int n = 0; n < _length; n++) {
       _shuffledPositions.add(mapShuffle(n, _length - 1, shuffle));
     }
-    final List<int> _shuffled = List<int>.generate(
-        this.length, (__i) => _charCodes[_shuffledPositions[__i]]);
+    final _shuffled = List<int>.generate(
+        this.length, (_m) => _charCodes[_shuffledPositions[_m]]);
     return String.fromCharCodes(_shuffled);
   }
 
@@ -208,22 +231,23 @@ extension Crypt on String {
   //
 
   String unshuffled([final int shuffle = 3]) {
-    final int _length = this.length;
-    final List<int> _charCodes = this.codeUnits;
-    final List<int> _unshuffledPositions = [];
+    final _length = this.length;
+    final _charCodes = this.codeUnits;
+    final unshuffledPositions = <int>[];
     for (int n = 0; n < _length; n++) {
-      _unshuffledPositions.add(unmapShuffle(n, _length - 1, shuffle));
+      unshuffledPositions.add(unmapShuffle(n, _length - 1, shuffle));
     }
-    final List<int> _unshuffled = List<int>.generate(
-        this.length, (__i) => _charCodes[_unshuffledPositions[__i]]);
-    return String.fromCharCodes(_unshuffled);
+    final unshuffled = List<int>.generate(
+        this.length, (_m) => _charCodes[unshuffledPositions[_m]]);
+    return String.fromCharCodes(unshuffled);
   }
 
   //
   //
   //
 
-  String encodedLength() {
+  /// Returns `this` with its encoded length.
+  String withLength() {
     return this.length.toBytesFromUint32 + this;
   }
 
@@ -231,7 +255,8 @@ extension Crypt on String {
   //
   //
 
-  String decodedLength([final int? lengthMax]) {
+  /// Returns `this` without its encoded length.
+  String withoutLength([final int? lengthMax]) {
     final int? _length = this.toUint32FromBytes;
     if (_length != null &&
         _length <= this.length - 4 &&
@@ -245,11 +270,13 @@ extension Crypt on String {
   //
   //
 
-  List<String> lengthSplit() {
-    List<String> _res = [];
+  /// Unjoins `this` String joined via the [join] extension method on
+  /// List<String> back into a List<String> object.
+  List<String> unjoin() {
+    final _res = <String>[];
     int n = 0;
     while (true) {
-      final String _temp = this.substring(n).decodedLength();
+      final _temp = this.substring(n).withoutLength();
       _res.add(_temp);
       n += 4 + _temp.length;
       if (n >= this.length) {
@@ -272,11 +299,11 @@ extension Crypt on String {
   //
 
   String unstripified() {
-    List<int> _charCodes = [];
-    for (final String el in this.split("-")) {
-      final int? _c = int.tryParse(el);
-      if (_c == null) return "";
-      _charCodes.add(_c);
+    final _charCodes = <int>[];
+    for (final el in this.split("-")) {
+      final int? c = int.tryParse(el);
+      if (c == null) return "";
+      _charCodes.add(c);
     }
     return String.fromCharCodes(_charCodes);
   }
@@ -286,16 +313,17 @@ extension Crypt on String {
   //
 
   String codified([final int shuffle = 3]) {
-    final List<int> _codeUnits = this.codeUnits;
-    final List<String> _res = [];
-    for (final int el in _codeUnits) {
-      final String _u = getBaseXFromBase10(el, DIGITS_BASE_36_SHUFFLED);
-      if (_u.length == 1) {
-        final int _code = Random.secure().nextInt(26);
-        final String _prefix = String.fromCharCode(97 /*'a'*/ + _code);
-        _res.add("$_prefix$_u");
+    final _codeUnits = this.codeUnits;
+    final _res = <String>[];
+    for (final el in _codeUnits) {
+      final u = getBaseXFromBase10(el, DIGITS_BASE_36_SHUFFLED);
+      if (u.length == 1) {
+        final _code =
+            Random.secure().nextInt(26); // NB: May throw UnsupportedError!
+        final _prefix = String.fromCharCode(97 /*'a'*/ + _code);
+        _res.add("$_prefix$u");
       } else {
-        _res.add(_u);
+        _res.add(u);
       }
     }
     return _res.join().shuffled(shuffle);
@@ -306,42 +334,37 @@ extension Crypt on String {
   //
 
   String? uncodified([final int shuffle = 3]) {
-    final String _unshuffled = this.unshuffled(shuffle);
-    final List<int> _res = [];
-    for (int n = 0; n < _unshuffled.length; n += 2) {
-      int? _c;
-      final int _code = _unshuffled[n].codeUnitAt(0);
+    final unshuffled = this.unshuffled(shuffle);
+    final _res = <int>[];
+    for (int n = 0; n < unshuffled.length; n += 2) {
+      int? c;
+      final _code = unshuffled[n].codeUnitAt(0);
       if (_code >= 97 /*'a'*/ && _code <= 122 /*'z'*/) {
-        _c = getBase10FromBaseX(_unshuffled[n + 1], DIGITS_BASE_36_SHUFFLED);
+        c = getBase10FromBaseX(unshuffled[n + 1], DIGITS_BASE_36_SHUFFLED);
       } else {
-        _c = getBase10FromBaseX(
-            _unshuffled[n] + _unshuffled[n + 1], DIGITS_BASE_36_SHUFFLED);
+        c = getBase10FromBaseX(
+            unshuffled[n] + unshuffled[n + 1], DIGITS_BASE_36_SHUFFLED);
       }
-      if (_c == -1) return null;
-      _res.add(_c);
+      if (c == -1) return null;
+      _res.add(c);
     }
     return String.fromCharCodes(_res);
   }
 
-  //
-  //
-  //
-
-  String reversed() {
+  /// Returns the reverse of `this`.
+  String get reversed {
     return this.split("").reversed.join("");
   }
-
-  //
-  //
-  //
 }
 
 // ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
-String lengthJoin(final List<String> elements) {
-  String _res = "";
-  for (final String el in elements) {
-    _res += el.encodedLength();
+extension Join on List<String> {
+  /// Joins Strings together into a single [String]. The result can be unjoined
+  /// via the [unjoin] String-extension method.
+  String join() {
+    String _res = "";
+    for (final el in this) _res += el.withLength();
+    return _res;
   }
-  return _res;
 }
