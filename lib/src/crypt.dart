@@ -24,7 +24,7 @@ import 'mapping.dart' show mapShuffle, unmapShuffle;
 // ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
 /// Used to identify the cryptic type used.
-enum CryptMethod { BASIC, PSEUDO, NONE }
+enum CryptMethod { BASIC, BOGUS, NONE }
 
 extension CryptMethod_Code on CryptMethod {
   /// Returns the integer representation of the [CryptMethod] value.
@@ -32,7 +32,7 @@ extension CryptMethod_Code on CryptMethod {
     switch (this) {
       case CryptMethod.BASIC:
         return 0;
-      case CryptMethod.PSEUDO:
+      case CryptMethod.BOGUS:
         return 1;
       default:
         return -1;
@@ -54,7 +54,7 @@ CryptMethod nameToCryptMethod(final String name) {
     case "basic":
       return CryptMethod.BASIC;
     case "bogus":
-      return CryptMethod.PSEUDO;
+      return CryptMethod.BOGUS;
     default:
       return CryptMethod.NONE;
   }
@@ -66,7 +66,7 @@ CryptMethod codeToCryptMethod(final int code) {
     case 0:
       return CryptMethod.BASIC;
     case 1:
-      return CryptMethod.PSEUDO;
+      return CryptMethod.BOGUS;
     default:
       return CryptMethod.NONE;
   }
@@ -154,7 +154,7 @@ extension Crypt on String {
     final _bogus = String.fromCharCodes(_charCodesBogus);
     // If message starts with \0\0\0\0, the first 4 characters of the password
     // will be visible. Adding #### before the password hides it.
-    return CryptMethod.PSEUDO.code.toBytesFromUint32 +
+    return CryptMethod.BOGUS.code.toBytesFromUint32 +
         ("$_bogusLenAsBytes"
                 "$_bogus"
                 "$_OK"
@@ -174,7 +174,7 @@ extension Crypt on String {
     final int bogusLenMax = 1024,
   ]) {
     assert(bogusLenMax >= 0);
-    if (this.length >= 4 && this.toUint32FromBytes == CryptMethod.PSEUDO.code) {
+    if (this.length >= 4 && this.toUint32FromBytes == CryptMethod.BOGUS.code) {
       final String? _basic = this.substring(4).decryptedBasic("####$password");
       if (_basic != null) {
         final _bogusLen = _basic.toUint32FromBytes ?? 0;
@@ -200,7 +200,7 @@ extension Crypt on String {
         switch (_method) {
           case CryptMethod.BASIC:
             return this.decryptedBasic(password);
-          case CryptMethod.PSEUDO:
+          case CryptMethod.BOGUS:
             return this.decryptedBogus(password);
           default:
             return null;
