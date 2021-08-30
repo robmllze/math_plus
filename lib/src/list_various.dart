@@ -70,6 +70,33 @@ extension List_Various<T> on List<T> {
     return _res;
   }
 
+  /// Generates a new List from this one.
+  ///
+  /// The return values of `process` are added to the new List. Throw `false`
+  /// in `process` to skip adding a return value.
+  /// ```
+  /// print([1, 2, 3].generate((__value) => __value * _value)); // 1, 4, 9
+  ///
+  /// print([1, 2, 3].generate((__value) {
+  ///   if (__value != 2) return __value;
+  ///   throw false;
+  /// })); // 1, 3
+  /// ```
+  List<U> generate<U>(
+    final U Function(T) process,
+  ) {
+    final _iterator = this.iterator;
+    final _res = <U>[];
+    while (_iterator.moveNext()) {
+      try {
+        _res.add(process(_iterator.current));
+      } on bool catch (i) {
+        if (i != false) rethrow;
+      }
+    }
+    return _res;
+  }
+
   /// Push-to-end / shift operator.
   ///
   /// 1, 2 >> 3, 4 equals 3, 4, 1, 2.

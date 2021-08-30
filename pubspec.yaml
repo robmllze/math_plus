@@ -1,13 +1,10 @@
 name: math_plus
-description: A simple command-line application.
+description:
 version: 1.0.0
 # homepage: https://www.example.com
 
 environment:
   sdk: '>=2.12.0 <3.0.0'
-
-dependencies:
-  meta: ^1.7.0
 
 dev_dependencies:
   pedantic: ^1.10.0

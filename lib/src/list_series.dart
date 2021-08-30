@@ -121,21 +121,21 @@ extension List_Series on List<num> {
       List<num>.of(this)..sort((a, b) => b.compareTo(a));
 
   /// Generates a new Series from this Series with each component increased
-  /// by [increment].
+  /// by `increment`.
   List<num> operator +(final num increment) =>
       this.operate((a, _) => a! + increment);
 
   /// Generates a new Series from this Series with each component decreased
-  /// by [decrement].
+  /// by `decrement`.
   List<num> operator -(final num decrement) =>
       this.operate((a, _) => a! - decrement);
 
   /// Generates a new Series from this Series with each component multiplied
-  /// by [factor].
+  /// by `factor`.
   List<num> operator *(final num factor) => this.operate((a, _) => a! * factor);
 
   /// Generates a new Series from this Series with each component divided by
-  /// [denominator].
+  /// `denominator`.
   List<num> operator /(final num denominator) =>
       this.operate((a, _) => a! / denominator);
 

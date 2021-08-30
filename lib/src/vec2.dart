@@ -29,13 +29,11 @@ extension ListToVec2 on List<double> {
 
 class Vec2 {
   /// Vector from norm and rotation (0 to 2pi).
-  Vec fromRot(final double norm, final double rot) =>
-      [atan(rot), 1.0].vec.renorm(norm);
+  static Vec fromRot(final double norm, final double rot) =>
+      [0, norm].vec.rotated2(rot);
 
   // Zero vector.
-  Vec zero() => [0, 0].vec;
-
-  //operator [](Vec) {}
+  static Vec get zero => [0, 0].vec;
 }
 
 // ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░

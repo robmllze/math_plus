@@ -13,10 +13,10 @@ library math_plus;
 import 'dart:convert';
 import 'dart:math';
 
-import 'misc.dart';
 import 'list_series.dart';
-import 'utils.dart';
 import 'list_various.dart';
+import 'misc.dart';
+import 'utils.dart';
 
 // ░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░
 
@@ -61,38 +61,25 @@ class Vec {
 
   Vec operator +(final Vec other) => this
       .components
-      .operate2(other.components, (a, b, _) => (a ?? 0) + (b ?? 0))
+      .operate2(other.components, (__a, __b, _) => (__a ?? 0) + (__b ?? 0))
       .vec;
 
   Vec operator -(final Vec other) => this
       .components
-      .operate2(other.components, (a, b, _) => (a ?? 0) - (b ?? 0))
+      .operate2(other.components, (__a, __b, _) => (__a ?? 0) - (__b ?? 0))
       .vec;
 
-  Vec operator -() {
-    final List<num> _values = [];
-    for (final component in this.components) _values.add(-component);
-    return _values.vec;
-  }
+  Vec operator -() =>
+      this.components.generate((__component) => -__component).vec;
 
-  Vec operator *(final num factor) {
-    final List<num> _values = [];
-    for (final component in this.components) _values.add(factor * component);
-    return _values.vec;
-  }
+  Vec operator *(final num factor) =>
+      this.components.generate((__component) => __component * factor).vec;
 
-  Vec operator /(final num divisor) {
-    final List<num> _values = [];
-    for (final component in this.components) _values.add(component / divisor);
-    return _values.vec;
-  }
+  Vec operator /(final num divisor) =>
+      this.components.generate((__component) => __component / divisor).vec;
 
-  Vec operator ^(final num exponent) {
-    final List<num> _values = [];
-    for (final component in this.components)
-      _values.add(pow(component, exponent));
-    return _values.vec;
-  }
+  Vec operator ^(final num exponent) =>
+      this.components.generate((__component) => pow(__component, exponent)).vec;
 
   @override
   bool operator ==(final Object other) {
