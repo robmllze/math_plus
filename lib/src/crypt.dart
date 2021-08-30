@@ -272,7 +272,7 @@ extension Crypt on String {
 
   /// Unjoins `this` String joined via the [join] extension method on
   /// List<String> back into a List<String> object.
-  List<String> unjoin() {
+  List<String> lengthUnjoin() {
     final _res = <String>[];
     int n = 0;
     while (true) {
@@ -362,7 +362,7 @@ extension Crypt on String {
 extension Join on List<String> {
   /// Joins Strings together into a single [String]. The result can be unjoined
   /// via the [unjoin] String-extension method.
-  String join() {
+  String lengthJoin() {
     String _res = "";
     for (final el in this) _res += el.withLength();
     return _res;
